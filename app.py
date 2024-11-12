@@ -4,8 +4,8 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.metrics import accuracy_score, mean_squared_error
 import numpy as np
 
 # Load external stylesheet
@@ -117,27 +117,41 @@ elif page == "Data Visualization":
 elif page == "Prediction":
     st.title("Student Exam Performance Prediction")
 
-    # Define features and target variable
-    target_column = 'Pass_Fail'  # Binary target: 1 for pass, 0 for fail
+    # Define features and target variable for classification and regression
+    classification_target = 'Pass_Fail'  # Binary target: 1 for pass, 0 for fail
+    regression_target = 'Exam_Score'  # Target for score prediction
     feature_columns = ['Attendance', 'Hours_Studied', 'Previous_Scores', 'Access_to_Resources', 'Tutoring_Sessions']
     X = data[feature_columns]
-    y = data[target_column]
+    y_class = data[classification_target]
+    y_reg = data[regression_target]
 
     # One-hot encode categorical features
     X = pd.get_dummies(X)
 
     # Split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train_class, X_test_class, y_train_class, y_test_class = train_test_split(X, y_class, test_size=0.2, random_state=42)
+    X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(X, y_reg, test_size=0.2, random_state=42)
 
     # Train classification model
-    model = RandomForestClassifier()
-    model.fit(X_train, y_train)
+    classifier = RandomForestClassifier()
+    classifier.fit(X_train_class, y_train_class)
 
-    # Calculate model accuracy
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
+    # Calculate classification accuracy
+    y_pred_class = classifier.predict(X_test_class)
+    classification_accuracy = accuracy_score(y_test_class, y_pred_class)
 
-    st.write(f"Model Accuracy: {accuracy * 100:.2f}%")
+    st.write(f"Classification Model Accuracy: {classification_accuracy * 100:.2f}%")
+
+    # Train regression model
+    regressor = RandomForestRegressor()
+    regressor.fit(X_train_reg, y_train_reg)
+
+    # Calculate regression accuracy (RMSE)
+    y_pred_reg = regressor.predict(X_test_reg)
+    mse = mean_squared_error(y_test_reg, y_pred_reg)
+    rmse = np.sqrt(mse)
+
+    st.write(f"Regression Model RMSE: {rmse:.2f}")
 
     # Input fields for the specific features
     st.subheader("Enter student data:")
@@ -159,19 +173,21 @@ elif page == "Prediction":
 
     # One-hot encode input data and align with training data columns
     input_data = pd.get_dummies(input_data)
-    input_data = input_data.reindex(columns=X_train.columns, fill_value=0)
+    input_data = input_data.reindex(columns=X_train_class.columns, fill_value=0)
 
-    # Make prediction
+    # Make predictions
     if st.button("Predict"):
-        # Predict the pass/fail outcome
-        predicted_class = model.predict(input_data)[0]
-        
-        # Determine pass or fail based on prediction
+        # Predict pass/fail outcome
+        predicted_class = classifier.predict(input_data)[0]
         grade = "🎉 Pass 🎉" if predicted_class == 1 else "❌ Fail ❌"
         
+        # Predict exam score
+        predicted_score = regressor.predict(input_data)[0]
+
         st.write(f"Predicted Outcome: {grade}")
-        
-        # Display GIF based on grade
+        st.write(f"Predicted Exam Score: {predicted_score:.2f}")
+
+        # Display GIF based on pass/fail outcome
         if predicted_class == 1:
             st.image('im9.gif', width=300)  # Replace with your pass GIF file path
         else:
