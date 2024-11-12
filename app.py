@@ -191,4 +191,4 @@ elif page == "Prediction":
         if predicted_class == 1:
             st.image('pass.gif', width=300)  # Replace with your pass GIF file path
         else:
-            st.image('im2.gif', width=300)  # Replace with your fail GIF file path
+            st.image('fail.gif', width=300)  # Replace with your fail GIF file path
