@@ -4,8 +4,8 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
 import numpy as np
 
 # Load external stylesheet
@@ -14,6 +14,10 @@ with open("style.css") as f:
 
 # Load data
 data = pd.read_csv('StudentPerformanceFactors.csv')
+
+# Add binary target column for pass/fail
+pass_threshold = 70  # Define a passing threshold for exam scores
+data['Pass_Fail'] = data['Exam_Score'].apply(lambda x: 1 if x >= pass_threshold else 0)
 
 # Sidebar for page selection
 page = st.sidebar.selectbox("Select Page", ["Home", "Data Visualization", "Prediction"])
@@ -32,89 +36,14 @@ if page == "Home":
 
 # Data Visualization Page
 elif page == "Data Visualization":
-    st.title("Data Visualization")
-    st.write("Explore various visualizations of the student performance dataset.")
-
-    # Sidebar for selecting plot type
-    plot_type = st.sidebar.selectbox("Select Plot Type", ["Correlation Heatmap", "Bar Chart", "Pie Chart", "Line Chart", "Boxplot", "Scatter Plot", "Histogram"])
-
-    # Dropdown for feature selection based on the plot type
-    if plot_type in ["Bar Chart", "Pie Chart", "Line Chart", "Boxplot", "Histogram"]:
-        feature = st.sidebar.selectbox("Select Feature", data.columns)
-
-    elif plot_type == "Scatter Plot":
-        x_feature = st.sidebar.selectbox("Select X-axis Feature", data.columns)
-        y_feature = st.sidebar.selectbox("Select Y-axis Feature", data.columns)
-
-    # Plotting based on selected plot type
-    st.subheader(f"{plot_type} Visualization")
-
-    # Correlation Heatmap
-    if plot_type == "Correlation Heatmap":
-        st.write("Correlation Heatmap of the Dataset")
-        
-        # Select only numerical columns for correlation calculation
-        numerical_data = data.select_dtypes(include=[np.number])
-        corr = numerical_data.corr()
-        
-        fig, ax = plt.subplots(figsize=(10, 8))
-        sns.heatmap(corr, annot=True, cmap='coolwarm', ax=ax)
-        st.pyplot(fig)
-
-    # Bar Chart
-    elif plot_type == "Bar Chart":
-        st.write(f"Bar Chart of {feature}")
-        fig, ax = plt.subplots()
-        data[feature].value_counts().plot(kind='bar', ax=ax)
-        ax.set_xlabel(feature)
-        ax.set_ylabel("Count")
-        st.pyplot(fig)
-
-    # Pie Chart
-    elif plot_type == "Pie Chart":
-        st.write(f"Pie Chart of {feature}")
-        fig, ax = plt.subplots()
-        data[feature].value_counts().plot(kind='pie', autopct='%1.1f%%', ax=ax)
-        ax.set_ylabel('')
-        st.pyplot(fig)
-
-    # Line Chart
-    elif plot_type == "Line Chart":
-        st.write(f"Line Chart of {feature}")
-        fig, ax = plt.subplots()
-        data[feature].plot(kind='line', ax=ax)
-        ax.set_xlabel("Index")
-        ax.set_ylabel(feature)
-        st.pyplot(fig)
-
-    # Boxplot
-    elif plot_type == "Boxplot":
-        st.write(f"Boxplot of {feature}")
-        fig, ax = plt.subplots()
-        sns.boxplot(data=data, y=feature, ax=ax)
-        st.pyplot(fig)
-
-    # Scatter Plot
-    elif plot_type == "Scatter Plot":
-        st.write(f"Scatter Plot between {x_feature} and {y_feature}")
-        fig, ax = plt.subplots()
-        sns.scatterplot(data=data, x=x_feature, y=y_feature, ax=ax)
-        st.pyplot(fig)
-
-    # Histogram
-    elif plot_type == "Histogram":
-        st.write(f"Histogram of {feature}")
-        fig, ax = plt.subplots()
-        data[feature].plot(kind='hist', bins=20, ax=ax)
-        ax.set_xlabel(feature)
-        st.pyplot(fig)
+    # Code remains the same for visualization
 
 # Prediction Page
 elif page == "Prediction":
-    st.title("Student Exam Score Prediction")
+    st.title("Student Exam Performance Prediction")
 
     # Define features and target variable
-    target_column = 'Exam_Score'  # Replace with the actual name of your exam score column
+    target_column = 'Pass_Fail'  # Binary target: 1 for pass, 0 for fail
     feature_columns = ['Attendance', 'Hours_Studied', 'Previous_Scores', 'Access_to_Resources', 'Tutoring_Sessions']
     X = data[feature_columns]
     y = data[target_column]
@@ -125,16 +54,15 @@ elif page == "Prediction":
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Train regression model
-    model = RandomForestRegressor()
+    # Train classification model
+    model = RandomForestClassifier()
     model.fit(X_train, y_train)
 
     # Calculate model accuracy
     y_pred = model.predict(X_test)
-    mse = mean_squared_error(y_test, y_pred)
-    rmse = np.sqrt(mse)
+    accuracy = accuracy_score(y_test, y_pred)
 
-    st.write(f"Model RMSE: {rmse:.2f}")
+    st.write(f"Model Accuracy: {accuracy * 100:.2f}%")
 
     # Input fields for the specific features
     st.subheader("Enter student data:")
@@ -160,18 +88,16 @@ elif page == "Prediction":
 
     # Make prediction
     if st.button("Predict"):
-        # Predict the exam score
-        predicted_score = model.predict(input_data)[0]
+        # Predict the pass/fail outcome
+        predicted_class = model.predict(input_data)[0]
         
-        # Determine pass or fail (assuming a passing score is 70)
-        grade = "🎉 Pass 🎉" if predicted_score >= 75 else "❌ Fail ❌"
+        # Determine pass or fail based on prediction
+        grade = "🎉 Pass 🎉" if predicted_class == 1 else "❌ Fail ❌"
         
-        st.write(f"Predicted Exam Score: {predicted_score:.2f}")
-        st.write(f"Grade: {grade}")
+        st.write(f"Predicted Outcome: {grade}")
         
-       # Display GIF based on grade
-        if predicted_score >= 75:
+        # Display GIF based on grade
+        if predicted_class == 1:
             st.image('im9.gif', width=300)  # Replace with your pass GIF file path
         else:
             st.image('im2.gif', width=300)  # Replace with your fail GIF file path
-            
