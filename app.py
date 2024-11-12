@@ -25,7 +25,7 @@ page = st.sidebar.selectbox("Select Page", ["Home", "Data Visualization", "Predi
 # Home Page
 if page == "Home":
     st.title("Welcome to the Student Performance Analysis App")
-    st.image('im8.gif', use_column_width=True)
+    st.image('image_home.JPEG', use_column_width=True)
     st.write(
         """
         This app predicts student performance based on various factors. 
@@ -189,6 +189,6 @@ elif page == "Prediction":
 
         # Display GIF based on pass/fail outcome
         if predicted_class == 1:
-            st.image('im9.gif', width=300)  # Replace with your pass GIF file path
+            st.image('pass.gif', width=300)  # Replace with your pass GIF file path
         else:
             st.image('im2.gif', width=300)  # Replace with your fail GIF file path
