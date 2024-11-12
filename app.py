@@ -25,7 +25,7 @@ page = st.sidebar.selectbox("Select Page", ["Home", "Data Visualization", "Predi
 # Home Page
 if page == "Home":
     st.title("Welcome to the Student Performance Analysis App")
-    st.image('image_home.JPEG', use_column_width=True)
+    st.image('image_home.jpeg', use_column_width=True)
     st.write(
         """
         This app predicts student performance based on various factors. 
