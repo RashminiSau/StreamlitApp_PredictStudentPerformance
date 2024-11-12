@@ -36,7 +36,82 @@ if page == "Home":
 
 # Data Visualization Page
 elif page == "Data Visualization":
-    # Code remains the same for visualization
+    st.title("Data Visualization")
+    st.write("Explore various visualizations of the student performance dataset.")
+
+    # Sidebar for selecting plot type
+    plot_type = st.sidebar.selectbox("Select Plot Type", ["Correlation Heatmap", "Bar Chart", "Pie Chart", "Line Chart", "Boxplot", "Scatter Plot", "Histogram"])
+
+    # Dropdown for feature selection based on the plot type
+    if plot_type in ["Bar Chart", "Pie Chart", "Line Chart", "Boxplot", "Histogram"]:
+        feature = st.sidebar.selectbox("Select Feature", data.columns)
+
+    elif plot_type == "Scatter Plot":
+        x_feature = st.sidebar.selectbox("Select X-axis Feature", data.columns)
+        y_feature = st.sidebar.selectbox("Select Y-axis Feature", data.columns)
+
+    # Plotting based on selected plot type
+    st.subheader(f"{plot_type} Visualization")
+
+    # Correlation Heatmap
+    if plot_type == "Correlation Heatmap":
+        st.write("Correlation Heatmap of the Dataset")
+        
+        # Select only numerical columns for correlation calculation
+        numerical_data = data.select_dtypes(include=[np.number])
+        corr = numerical_data.corr()
+        
+        fig, ax = plt.subplots(figsize=(10, 8))
+        sns.heatmap(corr, annot=True, cmap='coolwarm', ax=ax)
+        st.pyplot(fig)
+
+    # Bar Chart
+    elif plot_type == "Bar Chart":
+        st.write(f"Bar Chart of {feature}")
+        fig, ax = plt.subplots()
+        data[feature].value_counts().plot(kind='bar', ax=ax)
+        ax.set_xlabel(feature)
+        ax.set_ylabel("Count")
+        st.pyplot(fig)
+
+    # Pie Chart
+    elif plot_type == "Pie Chart":
+        st.write(f"Pie Chart of {feature}")
+        fig, ax = plt.subplots()
+        data[feature].value_counts().plot(kind='pie', autopct='%1.1f%%', ax=ax)
+        ax.set_ylabel('')
+        st.pyplot(fig)
+
+    # Line Chart
+    elif plot_type == "Line Chart":
+        st.write(f"Line Chart of {feature}")
+        fig, ax = plt.subplots()
+        data[feature].plot(kind='line', ax=ax)
+        ax.set_xlabel("Index")
+        ax.set_ylabel(feature)
+        st.pyplot(fig)
+
+    # Boxplot
+    elif plot_type == "Boxplot":
+        st.write(f"Boxplot of {feature}")
+        fig, ax = plt.subplots()
+        sns.boxplot(data=data, y=feature, ax=ax)
+        st.pyplot(fig)
+
+    # Scatter Plot
+    elif plot_type == "Scatter Plot":
+        st.write(f"Scatter Plot between {x_feature} and {y_feature}")
+        fig, ax = plt.subplots()
+        sns.scatterplot(data=data, x=x_feature, y=y_feature, ax=ax)
+        st.pyplot(fig)
+
+    # Histogram
+    elif plot_type == "Histogram":
+        st.write(f"Histogram of {feature}")
+        fig, ax = plt.subplots()
+        data[feature].plot(kind='hist', bins=20, ax=ax)
+        ax.set_xlabel(feature)
+        st.pyplot(fig)
 
 # Prediction Page
 elif page == "Prediction":
